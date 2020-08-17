@@ -6,12 +6,5 @@ package com.cdzci.zic_yt_test;
  * @describe:
  */
 public class Test {
-    //12345456sdfdsaf
-
-//    你好
-
-    //的就撒风机 saf a
-
-
-//    master
+    //1234
 }
