@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.springframework.org/schema/jdbc">
+<head>
+    <meta charset="UTF-8">
+    <title>七孔数据测试</title>
+    <link rel="stylesheet" th:href="@{'/dist/css/H-ui.reset.css'}"/>
+    <link rel="stylesheet" th:href="@{'/dist/css/bootstrap.min.css'}"/>
+    <link rel="stylesheet" th:href="@{'/dist/layer/mobile/need/layer.css'}"/>
+    <script type="text/javascript" th:attr="src=@{'/dist/js/jquery3.2.1.js'}"></script>
+    <script type="text/javascript" th:attr="src=@{'/dist/js/bootstrap.min.js'}"></script>
+    <script type="text/javascript" th:attr="src=@{'/dist/layer/layer.js'}"></script>
+    <script type="text/javascript" th:attr="src=@{'/dist/laydate/laydate.js'}"></script>
+    <style type="text/css">
+
+        .uLlist ul li {
+            float: left;
+            margin-left: 30px;
+        }
+
+        .shujuBox {
+            width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .shujuBoxH1 {
+            margin: 10px auto;
+        }
+
+        .shujuBox h1 {
+            font-size: 24px;
+        }
+
+        .uLlist {
+            width: 1000px;
+            margin: 30px auto;
+        }
+
+        .table th, .table td {
+            text-align: center;
+        }
+
+        .uLlist ul li button {
+            background: #31b0d5;
+            border-radius: 5px;
+            padding: 5px 10px;
+            color: #ffff;
+            border: none
+        }
+
+        .uLlist ul li select {
+            height: 30px;
+        }
+
+        .uidHml {
+            height: 30px;
+        }
+    </style>
+</head>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var path = [[${path}]];
+    /*]]>*/
+</script>
+<body>
+<div class="shujuBox">
+    <div class="shujuBoxH1"><h1>七孔数据测试</h1></div>
+    <div class="clearfix uLlist">
+        <ul>
+            <li><input type="text" class="uidHml" placeholder="请输入uid"></li>
+            <li>
+                选择年： <select class="years">
+                <option value="全部">全部</option>
+                <option value="2018">2018</option>
+                <option value="2019">2019</option>
+                <option value="2020">2020</option>
+                <option value="2021">2021</option>
+                <option value="2022">2022</option>
+            </select>
+            </li>
+            <li class="moth">
+                选择月： <select class="seclectT"></select>
+            </li>
+            <li>
+                选择日： <select class="dayT"></select>
+            </li>
+            <li>
+                <button class="uLlistBtn">确认</button>
+            </li>
+        </ul>
+    </div>
+    <div class="tableList">
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>UID</th>
+                <th>Content</th>
+                <th>时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        var mothSelct = '';// 月
+        var dayT = '';//日
+        for (var i = 0; i < 13; i++) {
+            if (i == 0) {
+                mothSelct += ' <option value="全部">全部</option>'
+            } else {
+                mothSelct += ' <option value=' + i + '>' + i + '月</option>'
+            }
+        }
+        $(".moth .seclectT").append(mothSelct);
+
+        for (var n = 0; n < 32; n++) {
+            if (n == 0) {
+                dayT += ' <option value="全部">全部</option>'
+            } else {
+                dayT += ' <option value=' + n + '>' + n + '日</option>'
+            }
+        }
+        $(".dayT").append(dayT);
+        //确定
+        $(".uLlistBtn").click(function () {
+            var uid = $(".uidHml").val();//uid
+            var year = $(".years option:selected").val();
+            var month = $(".seclectT option:selected").val();//年 月
+            var day = $(".dayT option:selected").val();//年 月 日
+            var uidObj = new Object();
+            if (uid != '') {
+                uidObj.uid = uid;
+            }
+            if (year != '全部') {
+                uidObj.year = parseInt(year);
+            }
+            if (month != '全部') {
+                uidObj.month = parseInt(month);
+            }
+            if (day != '全部') {
+                uidObj.day = parseInt(day);
+            }
+            layer.open({type: 3});
+            $.ajax({
+                type: "get",
+                url: path + "/data",
+                data: uidObj,//必要
+                success: function (data) {
+                    $(".table tbody tr").remove();
+                    var respObj = data.respObj;
+                    var tbodyTd = '';
+                    if (data.errorCode == 100) {
+                        layer.closeAll();
+                        for (var i = 0; i < respObj.length; i++) {
+                            var content = respObj[i].content;
+                            var num = i + 1;
+                            tbodyTd += '<tr><td>' + num + '</td><td>' + respObj[i].uid + '</td><td><div>温度:' + parseInt(content.substring(3, 5), 16)
+                                + '</div><div>照明:' + (content.substring(5, 6) == 0 ? '关' : '开')
+                                + ',供氧:' + (content.substring(6, 7) == 0 ? '关' : '开')
+                                + ',灭菌:' + (content.substring(7, 8) == 0 ? '关' : '开')
+                                + ',造浪:' + (content.substring(8, 9) == 0 ? '关' : '开')
+                                + ',自动:' + (content.substring(9, 10) == 0 ? '开' : '关')
+                                + '</div><div>照明时间段:' +data_format(content.substring(10, 12))  + ":" + data_format(content.substring(12, 14)) + '-' + data_format(content.substring(14, 16)) + ":" + data_format(content.substring(16, 18))
+                                + ";" + data_format(content.substring(18, 20)) + ":" + data_format(content.substring(20, 22)) + '-' + data_format(content.substring(22, 24)) + ":" + data_format(content.substring(24, 26))
+                                + ";" + data_format(content.substring(26, 28)) + ":" + data_format(content.substring(28, 30)) + '-' + data_format(content.substring(30, 32)) + ":" + data_format(content.substring(32, 34))
+                                + '</div><div>供氧时间段:' + data_format(content.substring(34, 36)) + ":" + data_format(content.substring(36, 38)) + '-' + data_format(content.substring(38, 40)) + ":" + data_format(content.substring(40, 42))
+                                + ";" + data_format(content.substring(42, 44)) + ":" + data_format(content.substring(44, 46)) + '-' + data_format(content.substring(46, 48)) + ":" + data_format(content.substring(48, 50))
+                                + ";" + data_format(content.substring(50, 52)) + ":" + data_format(content.substring(52, 54)) + '-' + data_format(content.substring(54, 56)) + ":" + data_format(content.substring(56, 58))
+                                + '</div>'
+                                + '</td><td>' + respObj[i].createDate + '</td></tr>';
+                        }
+                        $(".table tbody").append(tbodyTd);
+                    } else {
+                        layer.closeAll();
+                    }
+                }, error: function (msg) {
+                    layer.closeAll();
+                    alert("请求服务器异常异常，case:" + msg);
+                }
+            });
+            function data_format(num) {
+                var tempNum=parseInt(num);
+                return tempNum>9?tempNum:'0'+tempNum;
+            }
+
+        })
+    })
+</script>
+</body>
+</html>
